@@ -35,6 +35,9 @@ class Metro{
         //Agrega una nueva linea a la red
         void AddLines( );
 
+        //Configura Hour ante una nueva linea
+        void ConfHour( );
+
         //Menus dentro del programa
         void Admin( );
         void Info( );
@@ -43,10 +46,13 @@ class Metro{
         int Simulation( );
 
         //Se encarga de la introduccion de nuevos tiempos de llegada
-        void Time(int, int);
+        void Time(int,int);
 
         //Se encarga de marcar las estaciones de transferencia
         string Transf( );
+
+        //Se encarga de las validaciones
+        friend int Validation(int,int, int);
 
         // Destructor
         ~Metro( ) {

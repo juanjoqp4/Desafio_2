@@ -1,5 +1,7 @@
 #include "metroC.h"
 
+int Validation(int var, int min, int max);
+
 Metro :: Metro( ){
     stations = new string *[1];                     //Se inicializa una linea de metro por defecto
     hour = new int *[1];
@@ -7,13 +9,14 @@ Metro :: Metro( ){
     total_lines = 1;
     act_line = 0;
     stations[0] = new string[len] {"A", "B", "C", "D", "E", ""};
-    hour[0] = new int[len - 2] {2, 7, 3, 4};                                                                                                        //
+    hour[0] = new int[len - 1] {2, 7, 3, 4, 0};                                                                                                        //
 }
 
 void Metro :: Restart( ){                                                                   //Se restablecen los atributos para la respectiva linea
     cout << "Especifique la linea sobre la que va a trabajar: ";
     cin >> act_line;
 
+    act_line = Validation(act_line, 1, total_lines);
     act_line -= 1;
     len = 0;
 
@@ -46,12 +49,13 @@ string Metro :: Transf( ){
     int transf = 0, line = 0;
     cout << endl <<"Digite la linea donde se hara la transferencia: ";
     cin >> line;
+    line = Validation(line, 1, total_lines);
     line--;
     Restart(line);
     ShowMe( );
     cout << "Seleccione la estacion de transferencia: ";
     cin >> transf;
-    cin.ignore( );
+    transf = Validation(transf, 1, len);
     transf--;
 
     station = stations[line][transf];
@@ -88,8 +92,28 @@ void Metro::AddLines( ) {
 
     stations = Space;        // Actualiza el puntero con el nuevo arreglo
     //ShowMe( );
-    if(total_lines == 2) hour[total_lines - 1] = new int [0];
+    ConfHour( );
     cout << "Se ha agregado una nueva linea de metro." << endl << endl;
+}
+
+void Metro :: ConfHour( ){
+    int **sup = new int *[total_lines];
+    for(int i = 0; i < total_lines - 1; i++){
+        Restart(i);
+        sup[i] = new int [len];
+        for(int j = 0; j < len; j++){
+            sup[i][j] = hour[i][j];
+            cout << "Copia Tiempos-->" << sup[i][j] << endl;
+        }
+    if(i + 1 == total_lines - 1) sup[i + 1] = new int [1];
+    }
+
+    sup[total_lines - 1][0] = 0;
+    if(total_lines != 2) for(int i = 0; i < total_lines; i++) delete[ ] hour[i];     // Liberar la memoria del arreglo de strings
+    delete[ ] hour;                                                     // Liberar la memoria del arreglo de punteros
+    hour = nullptr;                                             // Establecer el puntero a nullptr (buena práctica)
+
+    hour = sup;
 }
 
 void Metro :: RemLine( ) {
@@ -116,7 +140,8 @@ void Metro::NewStation( ){                  //Agrega una nueva estacion a la lin
     getline(cin, a);
     cout << "Digite la posicion donde desea ubicar la nueva estacion: ";                //Validar para el numero de espacios disponibles
     cin >> b;
-    cin.ignore( );
+    b = (act_line != 0)? Validation(b, 2, len + 1) : Validation(b, 1, len + 1);                      //El minimo es 2 en estaciones distintas a la primera, porque siempre va a estar la estacion de transferencia en la primera posicion
+
 
     // Crear un nuevo arreglo para la línea actual con un espacio más
     string newSt [len + 2] = {};
@@ -130,16 +155,16 @@ void Metro::NewStation( ){                  //Agrega una nueva estacion a la lin
         sup++;
     }
 
-    len += 2;           //Aumenta 2, uno para la nueva estacion y otro para la cadena vacia
+    len += 1;           //Aumenta 2, uno para la nueva estacion y otro para la cadena vacia
 
-    stations[act_line] = new string [len];
-    stations[act_line][len-1] = "";
+    stations[act_line] = new string [len + 1];
+    stations[act_line][len] = "";
 
     for(int k = 0; k < len; k++){
         stations[act_line][k] = newSt[k];                           //El arreglo principal toma los datos del arreglo nuevo
         //cout << "-->" << stations[act_line][k] << endl;
     }
-    int pin = len - 2;
+    int pin = len - 1;
 
     if(pin > 0) Time(1, b);         //Si hay por lo menos una estacion, hace el proceso de los tiempos
 
@@ -151,44 +176,46 @@ void Metro :: Time(int type, int ubi) {
     if (type == 1) {
         char time = '0', time2 = '0';
         bool c = false;
-        int def = len - 1; // Tamaño del nuevo arreglo (sin contar la cadena vacia)
+        int *newt;
 
         cout << "|-->Digite el tiempo de llegada desde " << stations[act_line][ubi - 2] << ": ";
         cin >> time;
-        cin.ignore();
 
-        if (stations[act_line][ubi] != "") {
+        if (stations[act_line][ubi] != "") {                                                                                        //Si la estacion fue agregada en la ultima posicion, solo debe recibir el tiempo de llegada desde n - 1
             cout << "|-->Digite el tiempo de llegada hasta " << stations[act_line][ubi] << ": ";
             cin >> time2;
-            cin.ignore();
             c = true;
+        }
+
+        if (c == true) newt = new int [len + 1];
+        else newt = new int [len];
+
+        if(c == true){
+            int sup = 0;
+            for(int i = 0; i < len + 1; i++){
+                if(i != ubi - 1){
+                    newt[i] = hour[act_line][sup];
+                    sup++;
+                }
+                //cout << "Copia/" << newt[i] << "+Original+" << hour[act_line][sup - 1] << endl;
+            }
+            newt[ubi - 1] = int(time2 - 48);
+            newt[ubi - 2] = int(time - 48);
         }else{
-            hour[act_line] = new int [1];
-            hour[act_line][0] = time;
-            def = 1;
+            int sup = 0;
+            hour[act_line][len - 1] = 0;
+            for(int i = 0; i < len - 1; i++){
+                if(i != ubi - 2){
+                    newt[i] = hour[act_line][sup];
+                    sup++;
+                }
+            //cout << "Copia/" << newt[i] << "+Original+" << hour[act_line][sup - 1] << endl;
+            }
+            newt[ubi - 2] = int(time - 48);
         }
-        // Crear un nuevo arreglo para la linea actual con un espacio mas
-        int* newTim = new int[def - 1]; // +1 para la nueva estacion
 
-        // Mover los elementos hacia adelante (sin reemplazar)
-        for (int i = def; i >= ubi; i--) {
-            newTim[i] = hour[act_line][i - 1];                  //ERROR: TODAVIA NO SE HA AGREGADO EL TIEMPO, POR LO QUE LOS RANGOS NO DAN
-        }
-
-        // Asignar los nuevos tiempos
-        newTim[ubi - 2] = int(time - '0');
-        if (c) newTim[ubi - 1] = int(time2 - '0');
-
-        // Liberar la memoria del arreglo antiguo
-        delete[ ] hour[act_line];
-
-        // Asignar el nuevo arreglo a la linea
-        hour[act_line] = newTim;
-
-        /*cout << "Tiempos actualizados:" << endl;
-        for (int k = 0; k < len; k++) {
-            cout << "//-->" << hour[act_line][k] << endl;
-        }*/
+        delete[ ] hour[act_line];                                                     // Liberar la memoria del arreglo de punteros //ERROR: DESPUES DE AGREGAR 2 ESTACIONES EN LA ULTIMA POSICION SE CAE EL PROGRAMA AQUI
+        hour[act_line] = newt;
 
     } else {
         // ESPACIO DE DESARROLLO POSTERIOR
@@ -251,9 +278,10 @@ int Metro :: Simulation( ){
     }else{
         for(int j = first; j < last; j++){
             cont += hour[act_line][j];
+            cout << "//" << hour[act_line][j] << endl;
         }
     }
-    system("cls");
+    //system("cls");
     cout << "El recorrido desde " << stations[act_line][first] << " hasta " << stations[act_line][last] << " dura aproximadamente ";
     return cont;
 }
@@ -264,7 +292,6 @@ void Metro :: Admin( ){             //Menu para administrar la red metro
     while(opt != '5'){
         cout << "|-->Menu Administrador\n1. Agregar linea a la red\n2. Agregar estacion a una linea\n3. Eliminar una linea\n4. Eliminar una estacion\n5. Salir\n|Digite aqui-->";
         cin >> opt;
-        cin.ignore( );
         system("cls");
         if((opt > 49) && (opt < 53)) Restart( );            //Solo se referenciaran lineas de la opcion 2 a 4
 
@@ -310,10 +337,8 @@ void Metro :: Info( ){      //Menu para mostrar al usuario la informacion genera
     system("cls");
     char opt = '0';
     while(opt != '3'){
-        cout << "|-->Menu de Informacion\n1. Informacion General\n2. Buscador\n3. Salir\n|Digite aqui-->";
+        cout << endl << "|-->Menu de Informacion\n1. Informacion General\n2. Buscador\n3. Salir\n|Digite aqui-->";
         cin >> opt;
-        cin.ignore( );
-        //if((opt > 48) && (opt < 52)) Restart( );
         system("cls");
 
         switch(opt){
@@ -417,4 +442,14 @@ bool Titan( ){              //Menu principal, desde aqui el usuario puede ir a l
         default: cout << "Opcion incorrecta, vuelva a intentarlo" << endl;
         }           //Switch
     }
+}
+
+int Validation(int var, int min, int max){
+    char opt = char(var + 48);
+
+    while(opt < char(min + 48) || opt > char(max + 48)){
+        cout << endl << "Opcion incorrecta, vuelva a intentarlo: ";
+        cin >> opt;
+    }
+    return int(opt - 48);
 }
