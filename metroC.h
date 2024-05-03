@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdlib>
 #include <unistd.h>
+#include <limits> // Para manejar límites
 
 using namespace std;
 
@@ -17,9 +18,10 @@ class Metro{
         //Constructor
         Metro( );
 
+        //Simulation es una clase anidada, esta tiene el proposito de representar un pasajero y su viaje dentro de la red
         class Simulation {
-            Metro* metroSystem;
             public:
+                Metro* metroSystem;
                 Simulation(Metro* metro) : metroSystem(metro) { }
                 int Travel( );
                 // Aqui se puede acceder a los miembros de Metro a traves de metroSystem
@@ -59,8 +61,12 @@ class Metro{
         //Se encarga de marcar las estaciones de transferencia
         string Transf( );
 
-        //Se encarga de las validaciones
+        //Se encarga de buscar una estacion para comprobar si es de transferencia o no
+        bool Search(string);
+
+        //Se encarga de las validaciones entre un rango min - max y uno de min - infinito
         friend int Validation(int,int, int);
+        friend int Validation(int,int);
 
         // Destructor
         ~Metro( ) {
