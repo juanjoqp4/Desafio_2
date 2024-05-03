@@ -10,11 +10,22 @@ using namespace std;
 
 class Metro{
     private:
+        int total_lines, len,**hour, act_line;  //Estructura de datos enfocada al tiempo junto con la linea actual de la red sobre la que se trabaja, su tamaño y el total de lineas
         string **stations;                              //Estructura de datos principal
-        int **hour,total_lines, act_line, len;             //Estructura de datos enfocada al tiempo junto con total de lineas junto con la linea actual y su respectivo tamaño
+
     public:
         //Constructor
         Metro( );
+
+        class Simulation {
+            Metro* metroSystem;
+            public:
+                Simulation(Metro* metro) : metroSystem(metro) { }
+                int Travel( );
+                // Aqui se puede acceder a los miembros de Metro a traves de metroSystem
+                // Por ejemplo:
+                // int time = metroSystem->hour[metroSystem->act_line][0];
+        };
 
         //Muestra la linea que este referenciada por act_line
         void ShowMe( );
@@ -30,7 +41,7 @@ class Metro{
         void RemStation( );
 
         //Elimina la ultima linea de la red metro
-        void RemLine( );
+        void RemLines( );
 
         //Agrega una nueva linea a la red
         void AddLines( );
@@ -41,9 +52,6 @@ class Metro{
         //Menus dentro del programa
         void Admin( );
         void Info( );
-
-        //Desarrolla la simulacion de recorridos
-        int Simulation( );
 
         //Se encarga de la introduccion de nuevos tiempos de llegada
         void Time(int,int);
@@ -56,6 +64,7 @@ class Metro{
 
         // Destructor
         ~Metro( ) {
+
             for(int i = 0; i < total_lines; i++) delete[ ] stations[i];     // Liberar la memoria del arreglo de strings
             delete[ ] stations;                                                     // Liberar la memoria del arreglo de punteros
             stations = nullptr;                                             // Establecer el puntero a nullptr (buena práctica)
@@ -66,6 +75,7 @@ class Metro{
             hour = nullptr;                                             // Establecer el puntero a nullptr (buena práctica)
             cout << "-->Memoria liberada..." << endl;
             sleep(1.5);
+
         }
 };
 
