@@ -9,8 +9,8 @@ Metro :: Metro( ){
         len = 6;
         total_lines = 1;
         act_line = 0;
-        stations[0] = new string[len] {"A", "B", "C", "D", "E", ""};            //El espacio vacio es para los .empty( ), esto a consecuencia de no encontrar un algoritmo para obtener el tamaño de un arreglo de strings
-        hour[0] = new int[len - 1] {2, 7, 3, 4, 0};
+        stations[0] = new string[len] {"La Estrella", "Sabaneta", "Itagui", "Envigado", "Ayura", ""};            //El espacio vacio es para los .empty( ), esto a consecuencia de no encontrar un algoritmo para obtener el tamaño de un arreglo de strings
+        hour[0] = new int[len - 1] {3, 3, 2, 4, 0};
 }
 
 void Metro :: Restart( ){                                                                   //Se restablecen los atributos para la respectiva linea
@@ -452,7 +452,7 @@ bool Metro :: Search(string obj){                       //Busca obj entre todas 
 }
 
 int Metro :: Simulation :: Travel( ){                                                   //Esta clase simula el viaje de un pasajero a traves del sistema metro
-        int first, last, sub_act, sub_len;
+        int first, last, sub_act, sub_len, cont = 0;
         bool comp = true;
         cout << "Especifique la linea sobre la que va a trabajar: ";
         cin >> metroSystem->act_line;
@@ -487,7 +487,6 @@ int Metro :: Simulation :: Travel( ){                                           
             cout << "Digite la estacion de llegada: ";
             cin >> last;
             last = Validation(last, 1, sub_len) - 1;                    //Lo mismo aqui
-            int cont = 0;
 
             if(first > last){                                                   //Si la primera es mayor va a hacerlo en reversa
                 for(int i = first - 1; i >= last; i--){
