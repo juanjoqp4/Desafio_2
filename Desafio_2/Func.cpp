@@ -3,14 +3,21 @@
 int Validation(int var, int min, int max);
 int Validation(int var, int min);
 
-Metro :: Metro( ){
-        stations = new string *[1];                     //Se inicializa una linea de metro por defecto
-        hour = new int *[1];                                //hour procura llevar siempre el mismo tamaño del arreglo de estaciones añadiendo un 0 al final, simplemente por comodidad
-        len = 6;
-        total_lines = 1;
-        act_line = 0;
-        stations[0] = new string[len] {"La Estrella", "Sabaneta", "Itagui", "Envigado", "Ayura", ""};            //El espacio vacio es para los .empty( ), esto a consecuencia de no encontrar un algoritmo para obtener el tamaño de un arreglo de strings
-        hour[0] = new int[len - 1] {3, 3, 2, 4, 0};
+Metro :: Metro() {
+    stations = new string*[1];          // Se inicializa una linea de metro por defecto
+    hour = new int*[1];
+    len = 22;                   // Se ajusta el tamaño para las 21 estaciones de la linea A y un espacio nulo
+    total_lines = 1;
+    act_line = 0;
+    stations[0] = new string[len] {
+        "La Estrella", "Sabaneta", "Itagui", "Envigado", "Ayura", "Aguacatala",
+        "El Poblado", "Industriales", "Exposiciones", "Alpujarra", "San Antonio",                   // Se inicializan las estaciones de la linea A
+        "Parque Berrio", "Prado", "Hospital", "Universidad", "Caribe",
+        "Tricentenario", "Acevedo", "Madera", "Bello", "Niquia", ""
+    };
+    // Se inicializan los tiempos entre estaciones, asumiendo un tiempo estimado entre cada una
+
+    hour[0] = new int[len] {7, 3, 2, 4, 2, 2, 3, 5, 2, 2, 7, 2, 1, 2, 3, 2, 4, 2, 6, 2, 4,0};           // El último valor se establece en 0 por comodidad
 }
 
 void Metro :: Restart( ){                                                                   //Se restablecen los atributos para la respectiva linea
@@ -108,8 +115,11 @@ void Metro :: ConfHour( ){
     if(i + 1 == total_lines - 1) sup[i + 1] = new int [1];          //Cuando este en el penultimo arreglo le da un espacio al nuevo arreglo que corresponde a la nueva linea
     }
 
-    sup[total_lines - 1][0] = 0;                            //ERROR: A veces lo agrega bien
-    if(total_lines != 2) for(int i = 0; i < total_lines; i++) delete[ ] hour[i];     // Liberar la memoria del arreglo de strings, si solo hay uno no se borran los diferentes niveles
+    sup[total_lines - 1][0] = 0;
+
+    for(int i = 0; i < total_lines - 1; i++){
+        delete[ ] hour[i];     // Liberar la memoria del arreglo de strings, una linea menos ya que contiene una menos
+    }
     delete[ ] hour;                                                     // Liberar la memoria del arreglo de punteros
     hour = nullptr;                                             // Establecer el puntero a nullptr (buena practica)
 
@@ -118,22 +128,28 @@ void Metro :: ConfHour( ){
 
 void Metro :: RemLines( ) {
     string** updatedLines = new string*[total_lines - 1];                   // Crear un nuevo arreglo para las lineas restantes
+    int** updatedH = new int*[total_lines - 1];                   // Crear un nuevo arreglo para las lineas restantes
+
     int sup = 0;
 
     for (int i = 0; i < total_lines - 1; i++) {             // Copiar todo menos uno
         if(i != act_line){
             updatedLines[i] = stations[sup];                        //Copia cada linea
+            updatedH[i] = hour[sup];
             //cout << "Copia de linea #" << sup + 1 << endl;
             sup++;
         }else{
             updatedLines[i] = stations[sup += 1];               //Cuando llega a la que quiere borrar, se salta 1 espacio y continua
+            updatedH[i] = hour[sup];
             //cout << "Copia de linea #" << sup + 1 << endl;
             sup++;
         }
     }
 
+    delete[ ] hour;
     delete[ ] stations;
     stations = updatedLines;                    // Eliminar el antiguo arreglo y actualizar el puntero
+    hour = updatedH;
     total_lines--;              // Disminuir el numero total de lineas
 
     cout << "La linea " << act_line + 1 << " ha sido eliminada exitosamente." << endl << endl;
@@ -182,23 +198,24 @@ void Metro::NewStation( ){                  //Agrega una nueva estacion a la lin
 void Metro :: Time(int type, int ubi) {
     if (type == 1) {                                            //Tipo 1 es para agregar y tipo 2 para borrar
         int time = 0, time2 = 0;
-        bool c = false;                                         //c determina si hay que agregar 1 o 2 tiempos(reemplaza 1 y agrega otro)
+        bool c = false, situat = false;                                         //c determina si hay que agregar 1 o 2 tiempos(reemplaza 1 y agrega otro)
         int *newt;
 
-        cout << "|-->Digite el tiempo de llegada desde " << stations[act_line][ubi - 2] << ": ";
-        cin >> time;
+        if(act_line != 0 && ubi - 1 != 0){
+            cout << "|-->Digite el tiempo de llegada desde " << stations[act_line][ubi - 2] << ": ";
+            cin >> time;
+        }else situat = true;
 
-        time = Validation(time, 1);         //Valida el tiempo de 1 hasta infinito
+        if (situat == false) time = Validation(time, 1);         //Valida el tiempo de 1 hasta infinito
 
         if (stations[act_line][ubi] != "") {                                                                                        //Si la estacion fue agregada en la ultima posicion, solo debe recibir el tiempo de llegada desde n - 1
             cout << "|-->Digite el tiempo de llegada hasta " << stations[act_line][ubi] << ": ";
             cin >> time2;
             time2 = Validation(time2, 1);
-            c = true;                                   //Hay que agregar 2 tiempos al arreglo
+            if(situat == false) c = true;                                   //Hay que agregar 2 tiempos al arreglo si no se da la situacion de 0 - 0
         }
 
-        if (c == true) newt = new int [len + 1];            //Se reemplaza 1 y se agrega otro
-        else newt = new int [len + 1];                          //Se agrega 1
+        newt = new int [len + 1];            //Siempre se agrega 1 espacio de mas
 
         if(c == true){
             int sup = 0;
@@ -213,15 +230,17 @@ void Metro :: Time(int type, int ubi) {
             newt[ubi - 2] = time;                   //Se reemplaza el de la posicion anterior
         }else{
             int sup = 0;
-            hour[act_line][len - 1] = 0;                //Ojo
+            int pin = (situat == false)? ubi - 2 : ubi - 1;
+            hour[act_line][len - 1] = 0;
             for(int i = 0; i < len - 1; i++){
-                if(i != ubi - 2){
+                if(i != pin){
                     newt[i] = hour[act_line][sup];                  //Se omite el tiempo a la posicion anterior de la estacion
                     sup++;
                 }
             //cout << "Copia/" << newt[i] << "+Original+" << hour[act_line][sup - 1] << endl;
             }
-            newt[ubi - 2] = time;               //Se agrega el tiempo a la posicion anterior de la estacion
+            if(situat == false) newt[ubi - 2] = time;               //Se agrega el tiempo a la posicion anterior de la estacion
+            else newt[ubi - 1] = time2;
         }
 
         delete[ ] hour[act_line];                                                     // Liberar la memoria del arreglo de punteros
@@ -243,16 +262,15 @@ void Metro :: Time(int type, int ubi) {
             // Si la estación esta entre otras, sumar los tiempos y reducir el tamaño del arreglo
             newt = new int[len - 1];
             int sup = 0;
+
+            if(ubi - 1 == 0 && act_line == 0) sup = 1;
+
             for (int i = 0; i < len - 1; ++i) {
                 if (i == ubi - 2) {
-                    //cout << "//" << hour[act_line][i] << " + " << hour[act_line][i + 1] << endl;
-
                     newt[i] = hour[act_line][i] + hour[act_line][i + 1];        // Sumar los tiempos de la estacion eliminada y la siguiente
-
-                   // cout << "Resultado : " << newt[i] << endl;
                     sup += 2; // Saltar el tiempo 2 espacios, ya que reemplazamos 1 y eliminamos otro
                 } else{
-                    if(i == ubi - 1) i++;                                                   //Si llega al reemplazado lo salta
+                    if(i == ubi - 1 && (ubi - 1 != 0 && act_line == 0)) i++;                                                   //Si llega al reemplazado lo salta siempre y cuando no sea la primera posicion de la primera linea
                     newt[i] = hour[act_line][sup];
                     //cout << "-->Copia : " << hour[act_line][sup] << endl;
                     sup++;
@@ -282,8 +300,12 @@ void Metro::RemStation( ) {
                 if(act_line != 0 && stations[ 0 ][ i ] == stations [act_line][ind - 1]) comp = true;            //Comprueba que esa estacion no este en la primera linea
             }
 
-            if(act_line == 0) comp = Search(stations[act_line][ind - 1]);           //Si estamos en la primera linea, comprueba que la estacion no sea la transferencia de una linea
-
+            if(act_line != total_lines - 1){                    //Si no es la ultima hace el proceso para comprobar
+                int sub_act = act_line;
+                cout << "Eliminando " << stations[sub_act][ind - 1] << "..." << endl;
+                sleep(1.5);
+                comp = Search(stations[sub_act][ind - 1]);           //Si estamos en la primera linea, comprueba que la estacion no sea la transferencia de una linea
+            }
             if(comp == true) cout << endl << "|-->No puedes eliminar una estacion de transferencia, intentalo de nuevo" << endl;
             else{
                 string* updatedStations = new string[len];      // Crea un nuevo arreglo para almacenar las estaciones actualizadas // OJO
@@ -421,6 +443,7 @@ void Metro :: Info( ){      //Menu para mostrar al usuario la informacion genera
                         break;                                      //Cuando la encuentra sale del ciclo
                     }
                 }
+                if(res == true) break;
             }
             if(res == false) cout << "La estacion " << stationName << " no existe dentro de nuestra red" << endl << endl;
             else res = false;
@@ -438,14 +461,11 @@ void Metro :: Info( ){      //Menu para mostrar al usuario la informacion genera
     }
 }
 
-bool Metro :: Search(string obj){                       //Busca obj entre todas las estaciones que hay despues de la linea actual
+bool Metro :: Search(string obj){                       //Busca obj entre todas las estaciones que hay despues de la linea actual en su primera posicion
 
     for(int i = act_line + 1; i < total_lines; i++){
-        Restart(i);                                                         //Por cada linea obtiene sus caracteristicas, ya que necesitamos len para el proximo ciclo
-        for(int j = 0; j < len; j++){
-            if(stations[i][j] == obj){
-                return true;                            //Si la encuentra retorna true, y si no pues...
-            }
+        if(stations[i][0] == obj){
+            return true;                            //Si la encuentra retorna true, y si no pues...
         }
     }
     return false;
