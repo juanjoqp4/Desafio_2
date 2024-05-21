@@ -1,0 +1,4 @@
+Debido a un incomprensible enlazamiento del repositorio del desafio 2 con el de proyecto final
+ a causa de un movimiento en la ubicacion de la carpeta, al intentar realizar commits al proyecto final
+ se realizaron en este repositorio, por fortuna la informacion sigue guardada en commits anteriores y
+este error no tiene ninguna influencia dentro del trabajo ya finalizado.
